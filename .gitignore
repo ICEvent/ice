@@ -1,0 +1,25 @@
+# DFX build artifacts
+.dfx/
+
+# Motoko build output
+*.wasm
+*.did
+*.most
+
+# Node modules (if frontend is added later)
+node_modules/
+dist/
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Secrets / identity keys
+.env
+identity.pem
