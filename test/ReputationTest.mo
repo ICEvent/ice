@@ -20,7 +20,7 @@ let bob   = Principal.fromText("renrk-eyaaa-aaaab-qckzq-cai");
 suite("Reputation decay formula", func() {
 
   /// Simulate one month of 1 % decay
-  func applyDecay(score : Nat; ratePerMille : Nat) : Nat {
+  func applyDecay(score : Nat, ratePerMille : Nat) : Nat {
     let decayAmt = (score * ratePerMille) / 1_000;
     if (score > decayAmt) score - decayAmt else 0
   };
@@ -51,7 +51,7 @@ suite("Reputation decay formula", func() {
 
 suite("Reputation slashing", func() {
 
-  func applySlash(score : Nat; penaltyBps : Nat) : { newScore : Nat; slashed : Nat } {
+  func applySlash(score : Nat, penaltyBps : Nat) : { newScore : Nat; slashed : Nat } {
     let penalty  = (score * penaltyBps) / 10_000;
     let newScore = if (score > penalty) score - penalty else 0;
     { newScore; slashed = score - newScore }
@@ -78,7 +78,7 @@ suite("Reputation slashing", func() {
 
 suite("Progressive voting rights (anti-Sybil)", func() {
 
-  func votingRightBps(accountAgeNs : Int; minAgeNs : Int) : Nat {
+  func votingRightBps(accountAgeNs : Int, minAgeNs : Int) : Nat {
     if (accountAgeNs >= minAgeNs) return 10_000;
     Nat.max(0, (Int.abs(accountAgeNs) * 10_000) / Int.abs(minAgeNs))
   };
@@ -106,7 +106,7 @@ suite("Progressive voting rights (anti-Sybil)", func() {
 
 suite("Governance proposal threshold", func() {
 
-  func meetsThreshold(score : Nat; total : Nat; thresholdBps : Nat) : Bool {
+  func meetsThreshold(score : Nat, total : Nat, thresholdBps : Nat) : Bool {
     if (total == 0) return false;
     (score * 10_000) / total >= thresholdBps
   };
@@ -132,8 +132,8 @@ suite("Governance proposal threshold", func() {
 
 suite("Governance quorum and approval", func() {
 
-  func proposalPasses(forVotes : Nat; totalVotes : Nat; totalWeight : Nat;
-                      quorumBps : Nat; approvalBps : Nat) : Bool {
+  func proposalPasses(forVotes : Nat, totalVotes : Nat, totalWeight : Nat,
+                      quorumBps : Nat, approvalBps : Nat) : Bool {
     let quorumMet = if (totalWeight == 0) false
       else (totalVotes * 10_000) / totalWeight >= quorumBps;
     let approved  = if (totalVotes == 0) false
@@ -167,8 +167,10 @@ suite("Governance quorum and approval", func() {
 
 suite("Quadratic voting weight", func() {
 
-  func weight(score : Nat; rightBps : Nat) : Nat {
-    (T.isqrt(score) * 1_000 * rightBps) / 10_000
+  let SCALE : Nat = 1_000; // mirrors QUADRATIC_WEIGHT_SCALE from Governance canister
+
+  func weight(score : Nat, rightBps : Nat) : Nat {
+    (T.isqrt(score) * SCALE * rightBps) / 10_000
   };
 
   test("0 rep score → 0 weight", func() {

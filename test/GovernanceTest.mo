@@ -17,7 +17,7 @@ let alice = Principal.fromText("un4fu-tqaaa-aaaab-qadjq-cai");
 let bob   = Principal.fromText("renrk-eyaaa-aaaab-qckzq-cai");
 let carol = Principal.fromText("r7inp-6aaaa-aaaab-qabpq-cai");
 
-func makeVote(voter : Principal; support : Bool; weight : Nat) : T.Vote = {
+func makeVote(voter : Principal, support : Bool, weight : Nat) : T.Vote = {
   voter; support; weight; timestamp = Time.now()
 };
 
@@ -88,7 +88,7 @@ suite("Vote weight aggregation", func() {
 
 suite("Quorum and approval check", func() {
 
-  func finalise(forV : Nat; totalV : Nat; totalW : Nat; p : T.SystemParameters)
+  func finalise(forV : Nat, totalV : Nat, totalW : Nat, p : T.SystemParameters)
       : { quorum : Bool; approved : Bool; passes : Bool } {
     let quorum   = if (totalW == 0) false else (totalV * 10_000) / totalW >= p.quorumBps;
     let approved = if (totalV == 0) false else (forV   * 10_000) / totalV >= p.approvalThresholdBps;
@@ -133,7 +133,7 @@ suite("Timelock enforcement", func() {
 
   let timelockDelay = T.defaultParams.timelockDelayNs; // 2 days
 
-  func canExecute(timelockEnd : Int; now : Int) : Bool {
+  func canExecute(timelockEnd : Int, now : Int) : Bool {
     now >= timelockEnd
   };
 
@@ -244,7 +244,7 @@ suite("Delegation logic", func() {
 
 suite("Parameter change dispatch", func() {
 
-  func applyParam(params : T.SystemParameters; key : Text; value : Nat) : T.SystemParameters {
+  func applyParam(params : T.SystemParameters, key : Text, value : Nat) : T.SystemParameters {
     switch (key) {
       case "reviewerCount"           { { params with reviewerCount           = value } };
       case "reviewThreshold"         { { params with reviewThreshold         = value } };

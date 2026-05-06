@@ -35,6 +35,10 @@ actor Governance {
   type Vote       = T.Vote;
   type Error      = T.Error;
 
+  /// Precision multiplier applied to isqrt(reputation) to preserve integer precision
+  /// in quadratic vote-weight calculations.  weight = isqrt(score) × QUADRATIC_WEIGHT_SCALE × rightBps / 10000
+  let QUADRATIC_WEIGHT_SCALE : Nat = 1_000;
+
   // Delegation record
   type Delegation = {
     from        : Principal;
@@ -126,11 +130,11 @@ actor Governance {
   func resolveDelegate(from : Principal) : Principal {
     var current = from;
     var depth   = 0;
-    label loop while (depth < 3) {
+    label delegationLoop while (depth < 3) {
       switch (delegations.get(current)) {
-        case null  { break loop };
+        case null  { break delegationLoop };
         case (?to) {
-          if (Principal.equal(to, from)) break loop; // cycle guard
+          if (Principal.equal(to, from)) break delegationLoop; // cycle guard
           current := to;
           depth   += 1;
         };
@@ -146,7 +150,7 @@ actor Governance {
   /// Quadratic vote weight: isqrt(score) × votingRightBps / 10000, scaled ×1000.
   func quadraticWeight(score : Nat, rightBps : Nat) : Nat {
     let sqrtScore = T.isqrt(score);
-    (sqrtScore * 1_000 * rightBps) / 10_000
+    (sqrtScore * QUADRATIC_WEIGHT_SCALE * rightBps) / 10_000
   };
 
   // ─── Admin API ──────────────────────────────────────────────────────────
@@ -344,7 +348,7 @@ actor Governance {
         if (now <= p.endTime) return #err(#InvalidState("Voting period not over"));
 
         let total       = await getTotalRepScore();
-        let totalWeight = T.isqrt(total) * 1_000; // total quadratic weight at 100 % rights
+        let totalWeight = T.isqrt(total) * QUADRATIC_WEIGHT_SCALE; // total quadratic weight at 100 % rights
         let totalVotes  = p.forVotes + p.againstVotes;
 
         // Quorum: total votes ≥ quorumBps % of total quadratic weight

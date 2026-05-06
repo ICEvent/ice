@@ -262,4 +262,12 @@ module {
     };
     x
   };
+
+  // ─── Time constants (nanoseconds) ────────────────────────────────────────
+
+  /// One day expressed in nanoseconds
+  public let DAY_IN_NS : Int = 86_400_000_000_000;
+
+  /// Thirty days expressed in nanoseconds (used for monthly decay)
+  public let MONTH_IN_NS : Int = 2_592_000_000_000_000;
 }

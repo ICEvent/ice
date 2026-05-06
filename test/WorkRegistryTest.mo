@@ -19,7 +19,7 @@ let rev1    = Principal.fromText("rrkah-fqaaa-aaaab-aaazq-cai");
 let rev2    = Principal.fromText("ryjl3-tyaaa-aaaab-aaaba-cai");
 let rev3    = Principal.fromText("rno2w-sqaaa-aaaab-aaabq-cai");
 
-func futureDeadline() : Int { Time.now() + 86_400_000_000_000 }; // +1 day
+func futureDeadline() : Int { Time.now() + T.DAY_IN_NS }; // +1 day
 
 /// ── pure-function unit tests ────────────────────────────────────────────────
 
@@ -93,6 +93,22 @@ suite("WorkUnit status transitions (state machine)", func() {
     for (d in [1, 5, 10].vals()) {
       let w = { mockWork(#Open) with difficulty = d };
       assert w.difficulty >= 1 and w.difficulty <= 10;
+    }
+  });
+
+  test("dispute deadline = deliveredAt + disputePeriodNs", func() {
+    let deliveredAt  : Int = Time.now();
+    let disputePeriod = T.defaultParams.disputePeriodNs;
+    let disputeDeadline = deliveredAt + disputePeriod;
+    let w = {
+      mockWork(#Submitted) with
+      deliveryHash    = ?"QmTestHash";
+      deliveredAt     = ?deliveredAt;
+      disputeDeadline = ?disputeDeadline;
+    };
+    switch (w.disputeDeadline) {
+      case null assert false;
+      case (?dl) assert dl == deliveredAt + disputePeriod;
     }
   });
 });
@@ -191,7 +207,7 @@ suite("Quadratic voting weight", func() {
 
 suite("VestingSchedule cliff logic", func() {
 
-  func vestable(totalAmount : Nat; cliffDuration : Int; vestingDuration : Int; elapsed : Int) : Nat {
+  func vestable(totalAmount : Nat, cliffDuration : Int, vestingDuration : Int, elapsed : Int) : Nat {
     if (elapsed < cliffDuration) return 0;
     if (elapsed >= vestingDuration) return totalAmount;
     (totalAmount * Int.abs(elapsed)) / Int.abs(vestingDuration)

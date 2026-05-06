@@ -160,8 +160,7 @@ actor Reputation {
     switch (records.get(target)) {
       case null { #err(#NotFound("No record")) };
       case (?rec) {
-        let monthNs : Int = 2_592_000_000_000_000; // 30 days in ns
-        if (now - rec.lastDecayAt < monthNs) {
+        if (now - rec.lastDecayAt < T.MONTH_IN_NS) {
           return #ok(0) // not yet due
         };
         let decayAmt = (rec.score * stableParams.reputationDecayPerMille) / 1_000;

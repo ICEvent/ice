@@ -18,24 +18,24 @@ let rev1  = Principal.fromText("rrkah-fqaaa-aaaab-aaazq-cai");
 let rev2  = Principal.fromText("ryjl3-tyaaa-aaaab-aaaba-cai");
 let rev3  = Principal.fromText("rno2w-sqaaa-aaaab-aaabq-cai");
 
-func makeReview(reviewer : Principal; approved : Bool; score : Nat) : T.ReviewResult = {
+func makeReview(reviewer : Principal, approved : Bool, score : Nat) : T.ReviewResult = {
   reviewer; approved; score; feedback = "ok"; timestamp = Time.now()
 };
 
 /// Pure simulation of effectiveReward from RewardDistributor
-func effectiveReward(base : Nat; qM : Nat; dM : Nat; tM : Nat; cM : Nat) : Nat {
+func effectiveReward(base : Nat, qM : Nat, dM : Nat, tM : Nat, cM : Nat) : Nat {
   let s1 = (base  * qM) / 100;
   let s2 = (s1    * dM) / 100;
   let s3 = (s2    * tM) / 100;
   (s3 * cM) / 100
 };
 
-func timelinessMultiplier(deliveredAt : ?Int; deadline : Int) : Nat {
+func timelinessMultiplier(deliveredAt : ?Int, deadline : Int) : Nat {
   switch (deliveredAt) {
     case null 100;
     case (?d) {
       let diff = deadline - d;
-      if (diff >= 86_400_000_000_000) 120
+      if (diff >= T.DAY_IN_NS) 120
       else if (diff >= 0)             100
       else                            80
     };
@@ -100,12 +100,12 @@ suite("Timeliness multiplier", func() {
   let deadline : Int = 1_000_000_000_000_000; // arbitrary fixed point
 
   test("delivered 2 days early → 1.2× (120)", func() {
-    let deliveredAt = deadline - 2 * 86_400_000_000_000; // 2 days before
+    let deliveredAt = deadline - 2 * T.DAY_IN_NS; // 2 days before
     assert timelinessMultiplier(?deliveredAt, deadline) == 120
   });
 
   test("delivered exactly 1 day early → 1.2×", func() {
-    let deliveredAt = deadline - 86_400_000_000_000;
+    let deliveredAt = deadline - T.DAY_IN_NS;
     assert timelinessMultiplier(?deliveredAt, deadline) == 120
   });
 
@@ -149,7 +149,7 @@ suite("Collaboration multiplier", func() {
 
 suite("Reward split invariants", func() {
 
-  func split(effective : Nat; p : T.SystemParameters) : { s : Nat; t : Nat; r : Nat } = {
+  func split(effective : Nat, p : T.SystemParameters) : { s : Nat; t : Nat; r : Nat } = {
     s = (effective * p.stablecoinRatioBps) / 10_000;
     t = (effective * p.tokenRatioBps)      / 10_000;
     r = (effective * p.reputationRatioBps) / 10_000;
@@ -186,11 +186,11 @@ suite("Vesting schedule releasable calculation", func() {
   };
 
   test("before cliff (1 day elapsed): 0 releasable", func() {
-    assert releasable(86_400_000_000_000) == 0
+    assert releasable(T.DAY_IN_NS) == 0
   });
 
   test("before cliff (89 days): 0 releasable", func() {
-    assert releasable(89 * 86_400_000_000_000) == 0
+    assert releasable(89 * T.DAY_IN_NS) == 0
   });
 
   test("at cliff (90 days): > 0 releasable", func() {

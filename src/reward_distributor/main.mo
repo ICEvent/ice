@@ -37,6 +37,9 @@ actor RewardDistributor {
   type RewardBreakdown = T.RewardBreakdown;
   type Error           = T.Error;
 
+  /// 5 % of each stablecoin payout feeds the quarterly dividend pool (expressed in BPS)
+  let DIVIDEND_POOL_RATIO_BPS : Nat = 500;
+
   // ─── Stable state ───────────────────────────────────────────────────────
 
   stable var stableVesting       : [(VestingId, VestingSchedule)] = [];
@@ -101,9 +104,9 @@ actor RewardDistributor {
       case null 100; // not yet delivered – default
       case (?d) {
         let diff = deadline - d;
-        if (diff >= 86_400_000_000_000) 120      // ≥1 day early → 1.2×
-        else if (diff >= 0)             100      // on time → 1.0×
-        else                            80       // late → 0.8×
+        if (diff >= T.DAY_IN_NS) 120      // ≥1 day early → 1.2×
+        else if (diff >= 0)      100      // on time → 1.0×
+        else                     80       // late → 0.8×
       };
     }
   };
@@ -221,8 +224,8 @@ actor RewardDistributor {
           return #err(#InsufficientFunds("Insufficient stablecoin reserve"))
         };
         stablecoinReserve -= stable;
-        // 5 % of stablecoin payout feeds the quarterly dividend pool
-        dividendPool += stable / 20;
+        // DIVIDEND_POOL_RATIO_BPS (5 %) of stablecoin payout feeds the quarterly dividend pool
+        dividendPool += (stable * DIVIDEND_POOL_RATIO_BPS) / 10_000;
 
         // Token: create vesting schedule
         let vestingId = nextVestingId;
