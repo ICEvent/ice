@@ -1,0 +1,12 @@
+[package]
+name = "ice"
+version = "0.1.0"
+description = "ICE Collaboration Network – a trustless, incentive-aligned, community-governed work platform on the Internet Computer"
+repository = "https://github.com/ICEvent/ice"
+license = "MIT"
+keywords = ["icp", "dao", "collaboration", "governance", "defi"]
+
+[dependencies]
+
+[dev-dependencies]
+test = "https://github.com/ZenVoich/test#v0.5.0"

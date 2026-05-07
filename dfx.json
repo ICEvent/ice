@@ -1,0 +1,48 @@
+{
+  "canisters": {
+    "types": {
+      "main": "src/types/Types.mo",
+      "type": "motoko"
+    },
+    "reputation": {
+      "main": "src/reputation/main.mo",
+      "type": "motoko"
+    },
+    "treasury": {
+      "main": "src/treasury/main.mo",
+      "type": "motoko"
+    },
+    "work_registry": {
+      "main": "src/work_registry/main.mo",
+      "type": "motoko",
+      "dependencies": ["reputation", "reward_distributor"]
+    },
+    "reward_distributor": {
+      "main": "src/reward_distributor/main.mo",
+      "type": "motoko",
+      "dependencies": ["reputation"]
+    },
+    "governance": {
+      "main": "src/governance/main.mo",
+      "type": "motoko",
+      "dependencies": ["reputation", "treasury"]
+    }
+  },
+  "defaults": {
+    "build": {
+      "packtool": "mops sources",
+      "args": ""
+    }
+  },
+  "networks": {
+    "local": {
+      "bind": "127.0.0.1:4943",
+      "type": "ephemeral"
+    },
+    "ic": {
+      "providers": ["https://ic0.app"],
+      "type": "persistent"
+    }
+  },
+  "version": 1
+}
